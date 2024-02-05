@@ -9,7 +9,7 @@ if($method == 'POST')
     $data = json_decode(file_get_contents('php://input'), true);
 
     // Validade data
-    if(!isset($data['email'], $data['pwrd'])){
+    if(empty($data['email']) || empty($data['pwrd'])){
         http_response_code(400); // Bad Request
         echo json_encode(['error' => 'Missing Arguments']);
         exit;
@@ -48,7 +48,7 @@ if($method == 'POST')
     $stmt->execute([$email]);
     
     // Return result
-    http_response_code(204); // No Content
+    // http_response_code(204); // No Content
     echo json_encode(['message' => 'User deleted successfully']);
 }
 else{

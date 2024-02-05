@@ -7,8 +7,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) 
 {
     case 'GET':
-        $email = isset($_GET['email']) ? $_GET['email'] : null;
-        $search = isset($_GET['search']) ? $_GET['search'] : null;
+        $email = !empty($_GET['email']) ? $_GET['email'] : null;
+        $search = !empty($_GET['search']) ? $_GET['search'] : null;
 
         // Find users with search term
         if($search){    
@@ -28,8 +28,6 @@ switch ($method)
         // Get specific user
         else if($email)
         {
-            $email = $_GET['email'];
-            
             // Validade email
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 http_response_code(400); // Bad Request
@@ -61,10 +59,10 @@ switch ($method)
         $data = json_decode(file_get_contents('php://input'), true);
 
         // Validade input
-        if (!isset($data['email'], $data['pwrd'], $data['username'], $data['surname'], $data['nickname'])) {
+        if (empty($data['email']) || empty($data['pwrd']) || !isset($data['username'], $data['surname'], $data['nickname'])) {
             http_response_code(400); // Bad Request
             echo json_encode(['error' => 'Incomplete data provided']);
-            break;
+            exit;
         }
         
         // Extract input from data
@@ -80,11 +78,20 @@ switch ($method)
             echo json_encode(['error' => 'Invalid email']);
             exit;
         }
+
+        // Check if the email exists in the database
+        $stmt = $pdo->prepare('SELECT email FROM main WHERE email = ?');
+        $stmt->execute([$email]);
+        if($stmt->fetchColumn()){
+            http_response_code(400);
+            echo json_encode(['error' => 'User already exists']);
+            exit;
+        }
         
         // Execute SQL Query
-        $stmt = $pdo->prepare('INSERT INTO main (email, pwrd, username, surname, nickname) VALUES (:email, :password, :username, :surname, :nickname)');
+        $stmt = $pdo->prepare('INSERT INTO main (email, pwrd, username, surname, nickname) VALUES (:email, :pwrd, :username, :surname, :nickname)');
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-        $stmt->bindParam(':password', $password, PDO::PARAM_STR);
+        $stmt->bindParam(':pwrd', $password, PDO::PARAM_STR);
         $stmt->bindParam(':username', $username, PDO::PARAM_STR);
         $stmt->bindParam(':surname', $surname, PDO::PARAM_STR);
         $stmt->bindParam(':nickname', $nickname, PDO::PARAM_STR);
