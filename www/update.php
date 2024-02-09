@@ -9,7 +9,7 @@ if($method == 'POST')
     $data = json_decode(file_get_contents('php://input'), true);
 
     // Validade data
-    if(empty($data['email']) || empty($data['pwrd']) || !isset($data['username'], $data['surname'], $data['nickname'])){
+    if(empty($data['email']) || empty($data['pwrd']) || !isset($data['first_name'], $data['last_name'], $data['cpf'])){
         http_response_code(400); // Bad Request
         echo json_encode(['error' => 'Missing Arguments']);
         exit;
@@ -19,9 +19,9 @@ if($method == 'POST')
     $email = $data['email'];
     $password = $data['pwrd'];
     $newPassword = !empty($data['newPwrd']) ? password_hash($data['newPwrd'], PASSWORD_BCRYPT) : password_hash($data['pwrd'], PASSWORD_BCRYPT);
-    $username = $data['username'];
-    $surname = $data['surname'];
-    $nickname = $data['nickname'];
+    $first_name = $data['first_name'];
+    $last_name = $data['last_name'];
+    $cpf = $data['cpf'];
 
     // Validade email format
     if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
@@ -31,7 +31,7 @@ if($method == 'POST')
     }
 
     // Check if the email exists in the database
-    $stmt = $pdo->prepare('SELECT pwrd FROM main WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT pwrd FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $dbPassword = $stmt->fetchColumn();
     if(!$dbPassword){
@@ -48,12 +48,12 @@ if($method == 'POST')
     }
 
     // Execute SQL Query
-    $stmt = $pdo->prepare('UPDATE main set pwrd=:pwrd, username=:username, surname=:surname, nickname=:nickname WHERE email=:email');
+    $stmt = $pdo->prepare('UPDATE users set pwrd=:pwrd, first_name=:first_name, last_name=:last_name WHERE email=:email');
     $stmt->bindParam(':email', $email, PDO::PARAM_STR);  
     $stmt->bindParam(':pwrd', $newPassword, PDO::PARAM_STR);
-    $stmt->bindParam(':username', $username, PDO::PARAM_STR);
-    $stmt->bindParam(':surname', $surname, PDO::PARAM_STR);
-    $stmt->bindParam(':nickname', $nickname, PDO::PARAM_STR);
+    $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
+    $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
+    $stmt->bindParam(':cpf', $cpf, PDO::PARAM_STR);
     $stmt->execute();
 
     // Return result

@@ -27,7 +27,7 @@ if($method == 'POST')
     }
 
     // Check if the email exists in the database
-    $stmt = $pdo->prepare('SELECT pwrd FROM main WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT pwrd FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $dbPassword = $stmt->fetchColumn();
     if(!$dbPassword){
@@ -44,7 +44,7 @@ if($method == 'POST')
     }
 
     // Execute SQL Query
-    $stmt = $pdo->prepare('DELETE FROM main WHERE email=?');
+    $stmt = $pdo->prepare('DELETE FROM users WHERE email=?');
     $stmt->execute([$email]);
     
     // Return result

@@ -13,7 +13,7 @@ switch ($method)
         // Find users with search term
         if($search){    
             // Execute SQL Query        
-            $stmt = $pdo->prepare('SELECT email, username, surname, nickname FROM main WHERE username = ? OR surname = ? OR nickname = ?');
+            $stmt = $pdo->prepare('SELECT email, cpf, first_name, last_name FROM users WHERE first_name = ? OR last_name = ? or cpf= ?');
             $stmt->execute([$search, $search, $search]);
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -36,7 +36,7 @@ switch ($method)
             }
 
             // Execute SQL Query
-            $stmt = $pdo->prepare('SELECT email, username, surname, nickname FROM main WHERE email = ?');
+            $stmt = $pdo->prepare('SELECT email, cpf, first_name, last_name FROM users WHERE email = ?');
             $stmt->execute([$email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -50,7 +50,7 @@ switch ($method)
         }
         // Get all users in database
         else{
-            $stmt = $pdo->query('SELECT email, username, surname, nickname FROM main');
+            $stmt = $pdo->query('SELECT email, cpf, first_name, last_name FROM users');
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(['Users' => $result]);
         }        
@@ -59,7 +59,7 @@ switch ($method)
         $data = json_decode(file_get_contents('php://input'), true);
 
         // Validade input
-        if (empty($data['email']) || empty($data['pwrd']) || !isset($data['username'], $data['surname'], $data['nickname'])) {
+        if (empty($data['email']) || empty($data['pwrd']) || empty($data['cpf'])  || !isset($data['first_name'], $data['last_name'])) {
             http_response_code(400); // Bad Request
             echo json_encode(['error' => 'Incomplete data provided']);
             exit;
@@ -68,9 +68,9 @@ switch ($method)
         // Extract input from data
         $email = $data['email'];
         $password = password_hash($data['pwrd'], PASSWORD_BCRYPT); //Encrypt password
-        $username = $data['username'];
-        $surname = $data['surname'];
-        $nickname = $data['nickname'];
+        $first_name = $data['first_name'];
+        $last_name = $data['last_name'];
+        $cpf = $data['cpf'];
         
         // Validade email
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -80,7 +80,7 @@ switch ($method)
         }
 
         // Check if the email exists in the database
-        $stmt = $pdo->prepare('SELECT email FROM main WHERE email = ?');
+        $stmt = $pdo->prepare('SELECT email FROM users WHERE email = ?');
         $stmt->execute([$email]);
         if($stmt->fetchColumn()){
             http_response_code(400);
@@ -89,12 +89,12 @@ switch ($method)
         }
         
         // Execute SQL Query
-        $stmt = $pdo->prepare('INSERT INTO main (email, pwrd, username, surname, nickname) VALUES (:email, :pwrd, :username, :surname, :nickname)');
+        $stmt = $pdo->prepare('INSERT INTO users (email, cpf, pwrd, first_name, last_name) VALUES (:email, :cpf, :pwrd, :first_name, :last_name)');
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->bindParam(':cpf', $cpf, PDO::PARAM_STR);
         $stmt->bindParam(':pwrd', $password, PDO::PARAM_STR);
-        $stmt->bindParam(':username', $username, PDO::PARAM_STR);
-        $stmt->bindParam(':surname', $surname, PDO::PARAM_STR);
-        $stmt->bindParam(':nickname', $nickname, PDO::PARAM_STR);
+        $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
+        $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
         $success = $stmt->execute();
     
         // Return the result

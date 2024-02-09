@@ -1,6 +1,6 @@
 <?php
 $host = 'db';
-$dbname = 'teste';
+$dbname = 'brook';
 $username = 'root';
 $password = 'root';
 try {
