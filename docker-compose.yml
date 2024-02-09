@@ -1,13 +1,15 @@
 services:
  web:
-  image: nginx:latest
+  build:
+    context: .
+    dockerfile: env/docker/nginx/Dockerfile
   container_name: nginx
   restart: always
   ports:
     - "80:80"
   volumes:
     - ./www:/www
-    - ./site.conf:/etc/nginx/conf.d/site.conf
+    - ./env/docker/nginx/site.conf:/etc/nginx/conf.d/site.conf
   links:
   - php
  php:
